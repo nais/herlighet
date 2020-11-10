@@ -34,6 +34,8 @@ const (
 
 func main() {
 	logger, _ = zap.NewDevelopment()
+        http.Handle("/metrics", promhttp.Handler())
+        go http.ListenAndServe(":8080", nil)
 	//logger, _ = zap.NewProduction()
 	defer logger.Sync()
 	logger.Info("Assuming the position...")
