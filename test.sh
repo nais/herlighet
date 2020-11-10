@@ -10,6 +10,12 @@ cleanup() {
 
 trap cleanup EXIT
 
+# So that we don't get the stupid question 
+# about whether we want to allow incoming
+# connections
+if [[ $(uname -s) == "Darwin" ]]; then 
+    codesign --force --deep --sign - ./herlighet 
+fi
 ./herlighet & 
 GLORYPID=$!
 
