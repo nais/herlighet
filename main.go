@@ -3,7 +3,6 @@ package main
 import "go.uber.org/zap"
 import "bufio"
 import "io"
-import "os"
 import "errors"
 import "strings"
 import "strconv"
@@ -17,6 +16,12 @@ import "net"
 var logger *zap.Logger
 
 type pgStartupMessage []byte
+
+var serviceCandidates = map[string]string {
+    "puppy": "192.168.99.100:5434",
+    "handler": "192.168.99.100:5433",
+}
+
 
 // ref: https://www.postgresql.org/docs/9.3/protocol-error-fields.html
 const (
@@ -40,6 +45,7 @@ func main() {
         if err != nil {
             logger.Error("Could not accept incoming request", zap.Error(err))
         }
+        logger.Info("Incoming connection", zap.String("client_addr", conn.RemoteAddr().String()))
         go handleConnection(conn)
     }
 }
@@ -66,37 +72,51 @@ func sendErrorPacket(error string, conn net.Conn) {
     conn.Write(errorBuf.Bytes())
 }
 
-func openWide(clientConn net.Conn, startupMessage []byte) {
-    servAddr := "192.168.99.100:5433"
+// Try to make a connection between the front and the rear end
+func openWide(frontConn net.Conn, servAddr string) (net.Conn, error) {
+    logger.Info("Opening wide...", zap.String("rear_end", servAddr))
 
     tcpAddr, err := net.ResolveTCPAddr("tcp", servAddr)
+
     if err != nil {
-        println("ResolveTCPAddr failed:", err.Error())
-        os.Exit(1)
+        logger.Error("Failed to resolve server adress", zap.Error(err))
+        return nil, errors.New("Failed to resolve server address")
     }
 
-    serverConn, err := net.DialTCP("tcp", nil, tcpAddr)
+    rearConn, err := net.DialTCP("tcp", nil, tcpAddr)
+
     if err != nil {
-        println("Dial failed:", err.Error())
-        os.Exit(1)
+        logger.Error("Failed to connect to rear end", zap.Error(err))
+        return nil, errors.New("Failed to connect with rear end")
     }
 
-    serverConn.Write(startupMessage)
-    go io.Copy(clientConn, serverConn)
-    go io.Copy(serverConn, clientConn)
+    return rearConn, nil
 }
 
-func handleConnection(conn net.Conn) {
-    startupMessage, err := readStartupMessage(conn)
+func handleConnection(frontConn net.Conn) {
+    startupMessage, err := readStartupMessage(frontConn)
     if (err != nil) {
         logger.Error("Received invalid startup message", zap.Error(err))
-        conn.Close()
+        frontConn.Close()
         return
     }
     startupFields, _ := startupMessage.parse()
-    //sendErrorPacket("closed due to corona", conn)
+    //sendErrorPacket("closed due to corona", frontConn)
     fmt.Println(startupFields)
-    openWide(conn, startupMessage)
+    servAddr, knownHost := serviceCandidates[startupFields["database"]]
+    if !knownHost {
+        sendErrorPacket("No such rear end", frontConn)
+        return
+    }
+    rearConn, err := openWide(frontConn, servAddr)
+    if (err != nil) {
+        sendErrorPacket("Rear end not ready", frontConn)
+        return
+    }
+
+    rearConn.Write(startupMessage)
+    go io.Copy(frontConn, rearConn)
+    go io.Copy(rearConn, frontConn)
 }
 
 func readStartupMessage(conn net.Conn) (pgStartupMessage, error) {
