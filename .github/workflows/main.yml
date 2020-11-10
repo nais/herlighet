@@ -1,4 +1,4 @@
-name: Build, push, and deploy
+name: Build/push binary
 
 on: [push]
 
@@ -6,10 +6,14 @@ jobs:
   build:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    name: Build and push Docker container
+    name: Build and publish Go binary
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: set version
+        if: github.ref == 'refs/heads/main'
+        id: set-version
+        run: echo ::set-output name=version::$(date "+%Y-%m-%d")-$(git --no-pager log -1 --pretty=%h)
       - name: build binary
         run: |
           go get . && go build .
@@ -18,8 +22,8 @@ jobs:
         id: create_release
         uses: actions/create-release@v1.0.1
         with:
-          tag_name: ${{ github.sha }}
-          release_name: Release ${{ github.sha }}
+          tag_name: ${{ steps.set-version.outputs.version }}
+          release_name: Release ${{ steps.set-version.outputs.version }}
           draft: false
           prerelease: false
       - name: upload herlighet binary
