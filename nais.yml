@@ -6,4 +6,4 @@ metadata:
   labels:
     team: aura
 spec:
-  image: "{{{ IMAGE }}}"
+  image: "{{{ image }}}"
