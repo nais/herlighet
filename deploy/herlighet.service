@@ -1,0 +1,10 @@
+[Unit]
+Description=herlighet
+
+[Service]
+Restart=always
+User=herlighet
+ExecStart=/usr/local/bin/herlighet
+
+[Install]
+WantedBy=multi-user.target
