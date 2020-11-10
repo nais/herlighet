@@ -2,12 +2,10 @@ name: Build, push, and deploy
 
 on: [push]
 
-env:
-  docker_image: docker.pkg.github.com/${{ github.repository }}/herlighet:${{ github.sha }}
-
 jobs:
-
   build:
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     name: Build and push Docker container
     runs-on: ubuntu-latest
     steps:
@@ -24,7 +22,7 @@ jobs:
           release_name: Release ${{ github.sha }}
           draft: false
           prerelease: false
-      - name: upload apiserver binary
+      - name: upload herlighet binary
         if: github.ref == 'refs/heads/main'
         uses: actions/upload-release-asset@v1.0.2
         with:
