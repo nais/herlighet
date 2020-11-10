@@ -23,17 +23,16 @@ jobs:
           docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
           docker push ${docker_image}
 
-
-  #deploy:
-  #  name: Deploy to NAIS
-  #  needs: build
-  #  if: github.ref == 'refs/heads/main'
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #    - uses: actions/checkout@v1
-  #    - uses: nais/deploy/actions/deploy@v1
-  #      env:
-  #        APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-  #        CLUSTER: dev-fss
-  #        RESOURCE: nais.yml
-  #        VAR: image=${{ env.docker_image }}
+  deploy:
+    name: Deploy to NAIS
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-fss
+          RESOURCE: nais.yml
+          VAR: image=${{ env.docker_image }}
