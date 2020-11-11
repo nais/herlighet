@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"io"
@@ -19,11 +18,6 @@ var logger *zap.Logger
 
 type pgStartupMessage []byte
 
-var serviceCandidates = map[string]string{
-	"puppy":   "192.168.99.100:5434",
-	"handler": "192.168.99.100:5433",
-}
-
 // ref: https://www.postgresql.org/docs/9.3/protocol-error-fields.html
 const (
 	PG_ERR_SEVERITY byte = 'S'
@@ -34,6 +28,7 @@ const (
 
 func main() {
 	logger, _ = zap.NewDevelopment()
+        smellTest()
         http.Handle("/metrics", promhttp.Handler())
         go http.ListenAndServe(":8080", nil)
 	//logger, _ = zap.NewProduction()
@@ -104,13 +99,11 @@ func handleConnection(frontConn net.Conn) {
 		return
 	}
 	startupFields, _ := startupMessage.parse()
-	//sendErrorPacket("closed due to corona", frontConn)
-	fmt.Println(startupFields)
-	servAddr, knownHost := serviceCandidates[startupFields["database"]]
-	if !knownHost {
-		sendErrorPacket("No such rear end", frontConn)
-		return
-	}
+        servAddr, err := getRearEnd(startupFields["database"]) 
+        if err != nil {
+            sendErrorPacket(err.Error(), frontConn)
+            return
+        }
 	rearConn, err := openWide(frontConn, servAddr)
 	if err != nil {
 		sendErrorPacket("Rear end not ready", frontConn)
