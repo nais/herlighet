@@ -99,6 +99,11 @@ func handleConnection(frontConn net.Conn) {
 		return
 	}
 	startupFields, _ := startupMessage.parse()
+        if startupFields["sslMode"] == "true" {
+            frontConn.Write([]byte{0x4e})
+            handleConnection(frontConn)
+            return
+        }
         servAddr, err := getRearEnd(startupFields["database"]) 
         if err != nil {
             sendErrorPacket(err.Error(), frontConn)
@@ -155,6 +160,12 @@ func (startupMessage *pgStartupMessage) parse() (map[string]string, error) {
 
 	res["protoMajor"] = strconv.FormatUint(uint64(protoVer>>16), 10)
 	res["protoMinor"] = strconv.FormatUint(uint64(protoVer&0xFFFF), 10)
+        if (res["protoMajor"] == "1234") && (res["protoMinor"] == "5679") {
+            res["sslMode"] = "true"
+            return res, nil
+        } else {
+            res["sslMode"] = "false"
+        }
 
 	for {
 		key, _ := reader.ReadString(0)

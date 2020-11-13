@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+
+go build || exit 1
+
+cleanup() {
+    kill $GLORYPID
+}
+
+test_fail () {
+    echo -e "💩 \033[38;5;196m[FAILED] $1\033[0m"
+}
+
+test_pass () {
+    echo -e "🍆 \033[38;5;40m[PASSED] $1\033[0m"
+}
+
+hr () {
+    echo "================================================="
+}
+
+describe_test() {
+    hr
+    echo -e "🤔 \033[38;5;220m[ TEST ] $1\033[0m"
+}
+
+
+expect_success () {
+    EXIT_CODE=$?
+    if [ $EXIT_CODE != 0 ]; then
+        test_fail "$1"
+        exit 1
+    else
+        test_pass 
+    fi;
+}
+
+expect_failure () {
+    EXIT_CODE=$?
+    if [ $EXIT_CODE == 0 ]; then
+        test_fail "$1"
+        exit 1
+    else
+        test_pass "$1"
+    fi;
+}
+
+trap cleanup EXIT
+
+# So that we don't get the stupid question 
+# about whether we want to allow incoming
+# connections
+if [[ $(uname -s) == "Darwin" ]]; then 
+    codesign --force --deep --sign - ./herlighet 
+fi
+./herlighet & 
+export PGPASSWORD=unit_test
+PGSSLMODE=disable
+
+GLORYPID=$!
+TEST_QUERY='SELECT CURRENT_DATABASE() AS "db"'
+PSQL="psql --host 127.0.0.1 -P footer "
+
+echo "🔜 Waiting for herlighet..."
+while ! nc -z localhost 5432 > /dev/null; do
+  sleep 0.1 # wait for 1/10 of the second before check again
+done
+
+echo "🌞 herlighet open for business"
+
+describe_test "Testing basic known-good config"
+$PSQL --dbname handler --user handler -c "$TEST_QUERY"
+expect_success "Expected test to pass"
+
+describe_test "Testing SSL downgrade"
+PGSSLMODE=prefer $PSQL --dbname puppy --user puppy -c "$TEST_QUERY"
+expect_success "Expected test to pass"
+
+describe_test "This should give an error because client refuses SSL downgrade"
+PGSSLMODE=require $PSQL --dbname handler --user handler -c "$TEST_QUERY"
+expect_failure "Expected SSL required failure"
+
+describe_test "Connecting to database with access explicitly forbidden"
+$PSQL --dbname pony --user pony -c "$TEST_QUERY"
+expect_failure "Expected failure with error message saying database explicitly disabled"
+
+describe_test "Connecting to database not listed in herlighet database"
+$PSQL --dbname gimp --user gimp -c "$TEST_QUERY"
+expect_failure "Expected failure with error message saying database not known"
+
+hr
+echo "All tests pass! "
