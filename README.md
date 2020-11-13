@@ -5,6 +5,13 @@ Let There Be Glory!
 
 ## Herlighet ops/database maintenance
 
+VMs that the handlers run on today:
+
+```
+dev: b27apvl00485.preprod.local
+prod: a01apvl00454.adeo.no
+```
+
 Getting credentials for the herlighet metadata/configuration database:
 
 dev:
