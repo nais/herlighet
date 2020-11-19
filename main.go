@@ -34,7 +34,7 @@ func main() {
 	//logger, _ = zap.NewProduction()
 	defer logger.Sync()
 	logger.Info("Assuming the position...")
-	ln, err := net.Listen("tcp", "127.0.0.1:5432")
+	ln, err := net.Listen("tcp", ":5432")
 	if err != nil {
 		logger.Panic("Could not start server", zap.Error(err))
 	}
