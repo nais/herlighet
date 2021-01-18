@@ -3,6 +3,20 @@
 Let There Be Glory!
 
 
+## Deployment
+
+Deployment is managed using ansible.
+
+```
+ansible $ ansible-playbook -bKu RA_[RA user] -i [dev or prod] site.yml
+```
+
+You will be prompted for your RA user's password, used to sudo on the target machines.
+
+Please note that the ansible playbook also invokes vault locally to obtain the passwords used to access the herlighet databases. 
+
+Therefore, vault and a valid access token (obtained with `vault login -method=oidc`) is required.
+
 ## Herlighet ops/database maintenance
 
 VMs that the handlers run on today:
