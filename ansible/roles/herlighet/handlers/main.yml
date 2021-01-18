@@ -1,0 +1,7 @@
+---
+- name: Enable and start herlighet service
+  systemd:
+    name: herlighet
+    daemon_reload: yes
+    state: restarted
+    enabled: yes

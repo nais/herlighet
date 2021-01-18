@@ -1,0 +1,53 @@
+---
+- name: Ensure herlighet group exists
+  group:
+    name: herlighet
+    state: present
+
+- name: Ensure herlighet user exists
+  user:
+    name: herlighet
+    state: present
+    comment: herlighet service user
+    system: true
+    home: /var/opt/herlighet
+    group: herlighet
+    shell: /sbin/nologin
+
+- name: Copy systemd service file
+  template:
+    src: herlighet.service.j2
+    dest: /etc/systemd/system/herlighet.service
+    owner: root
+    group: root
+    
+- name: Trigger service restart
+  command: /bin/true
+  notify: Enable and start herlighet service
+
+- name: Create directory for herlighet binary
+  file:
+    path: /opt/herlighet/sbin
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Get link for latest herlighet binary
+  shell: |
+    curl https://api.github.com/repos/nais/herlighet/releases/latest | grep browser_download_url | cut -f 4 -d \"
+  args:
+    warn: false
+  register: download_url
+  environment: "{{ proxy_env }}"
+
+- name: Download and install herlighet binary
+  when: download_url.changed
+  get_url:
+    url: '{{ download_url.stdout }}'
+    dest: /opt/herlighet/sbin/herlighet
+    validate_certs: no
+    mode: 0755
+    owner: root
+    group: root
+  environment: "{{ proxy_env }}"
