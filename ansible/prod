@@ -1,0 +1,4 @@
+gateways:
+  hosts:
+    prod-pg.intern.nav.no:
+    prod-pg-backup.intern.nav.no:

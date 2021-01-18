@@ -1,0 +1,10 @@
+gateways:
+  hosts:
+    dev-pg.intern.nav.no:
+    dev-pg-backup.intern.nav.no:
+  vars:
+    vault_cluster_name: preprod-fss
+    db_host: b27dbvl023.preprod.local
+    db_user: herlighet-static-readonly
+    db_port: 5432
+    db_name: herlighet

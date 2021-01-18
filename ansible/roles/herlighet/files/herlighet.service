@@ -3,8 +3,9 @@ Description=herlighet
 
 [Service]
 Restart=always
+EnvironmentFile=/etc/herlighet-env
 User=herlighet
-ExecStart=/opt/herlighet/bin/herlighet
+ExecStart=/opt/herlighet/sbin/herlighet
 
 [Install]
 WantedBy=multi-user.target

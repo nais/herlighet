@@ -1,4 +1,10 @@
 ---
+- name: Get password from vault (if this fails, try doing "vault login -method=oidc")
+  local_action: command vault read -field password postgresql/{{ vault_cluster_name }}/static-creds/herlighet-static-readonly
+  register: vault_output
+  become: no
+  any_errors_fatal: true
+
 - name: Ensure herlighet group exists
   group:
     name: herlighet
@@ -14,9 +20,17 @@
     group: herlighet
     shell: /sbin/nologin
 
-- name: Copy systemd service file
+- name: Copy herlighet environment file
   template:
-    src: herlighet.service.j2
+    src: herlighet-env.j2
+    dest: /etc/herlighet-env
+    owner: herlighet
+    group: herlighet
+    mode: 0700
+
+- name: Copy systemd service file
+  copy:
+    src: herlighet.service
     dest: /etc/systemd/system/herlighet.service
     owner: root
     group: root
