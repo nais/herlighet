@@ -22,8 +22,8 @@ Therefore, vault and a valid access token (obtained with `vault login -method=oi
 VMs that the handlers run on today:
 
 ```
-dev: b27apvl00485.preprod.local
-prod: a01apvl00454.adeo.no
+dev:  a30apvl042.oera.no (main), a30apvl044.oera.no (backup)
+prod: a30apvl043.oera.no (main), a30apvl045.oera.no (backup)
 ```
 
 Getting credentials for the herlighet metadata/configuration database:
