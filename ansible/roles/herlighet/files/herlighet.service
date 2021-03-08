@@ -1,7 +1,12 @@
 [Unit]
 Description=herlighet
+After=network-online.target
+Wants=network-online.target
 
 [Service]
+StartLimitBurst=10
+StartLimitIntervalSec=0
+RestartSec=1
 Restart=always
 EnvironmentFile=/etc/herlighet-env
 User=herlighet
