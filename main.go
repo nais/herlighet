@@ -28,9 +28,9 @@ const (
 
 func main() {
 	logger, _ = zap.NewDevelopment()
-        smellTest()
-        http.Handle("/metrics", promhttp.Handler())
-        go http.ListenAndServe(":8080", nil)
+	smellTest()
+	http.Handle("/metrics", promhttp.Handler())
+	go http.ListenAndServe(":8080", nil)
 	//logger, _ = zap.NewProduction()
 	defer logger.Sync()
 	logger.Info("Assuming the position...")
@@ -99,17 +99,17 @@ func handleConnection(frontConn net.Conn) {
 		return
 	}
 	startupFields, _ := startupMessage.parse()
-        if startupFields["encryptionRequest"] == "true" {
-	    logger.Debug("Sending encryption downgrade request packet")
-            frontConn.Write([]byte{0x4e})
-            handleConnection(frontConn)
-            return
-        }
-        servAddr, err := getRearEnd(startupFields["database"]) 
-        if err != nil {
-            sendErrorPacket(err.Error(), frontConn)
-            return
-        }
+	if startupFields["encryptionRequest"] == "true" {
+		logger.Debug("Sending encryption downgrade request packet")
+		frontConn.Write([]byte{0x4e})
+		handleConnection(frontConn)
+		return
+	}
+	servAddr, err := getRearEnd(startupFields["database"])
+	if err != nil {
+		sendErrorPacket(err.Error(), frontConn)
+		return
+	}
 	rearConn, err := openWide(frontConn, servAddr)
 	if err != nil {
 		sendErrorPacket("Rear end not ready", frontConn)
@@ -161,17 +161,24 @@ func (startupMessage *pgStartupMessage) parse() (map[string]string, error) {
 
 	res["protoMajor"] = strconv.FormatUint(uint64(protoVer>>16), 10)
 	res["protoMinor"] = strconv.FormatUint(uint64(protoVer&0xFFFF), 10)
-        if (res["protoMajor"] == "1234") && (res["protoMinor"] == "5679") {
-	    logger.Debug("Startup message is SSLRequest")
-            res["encryptionRequest"] = "true"
-            return res, nil
-        } else if (res["protoMajor"] == "1234") && (res["protoMinor"] == "5680") {
-	    logger.Debug("Startup message is GSSEncRequest")
-            res["encryptionRequest"] = "true"
-            return res, nil
-        } else {
-            res["encryptionRequest"] = "false"
-        }
+
+	if res["protoMajor"] == "1234" {
+		if res["protoMinor"] == "5679" {
+			logger.Info("Startup message is SSLRequest")
+			res["encryptionRequest"] = "true"
+			return res, nil
+		}
+
+		if res["protoMinor"] == "5680" {
+			logger.Info("Startup message is GSSEncRequest")
+			res["encryptionRequest"] = "true"
+			return res, nil
+		}
+
+		logger.Warn("Almost certainly received a request to start a session with an as-of-yet unsupported encryption")
+	}
+
+	res["encryptionRequest"] = "false"
 
 	for {
 		key, _ := reader.ReadString(0)
