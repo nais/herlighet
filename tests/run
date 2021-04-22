@@ -79,6 +79,16 @@ describe_test "This should give an error because client refuses SSL downgrade"
 PGSSLMODE=require $PSQL --dbname handler --user handler -c "$TEST_QUERY"
 expect_failure "Expected SSL required failure"
 
+#TODO: Do version check of the next two tests to ensure
+# that there is PGGSSMODE support
+describe_test "Testing GSS downgrade"
+PGGSSENCMODE=prefer $PSQL --dbname puppy --user puppy -c "$TEST_QUERY"
+expect_success "Expected test to pass"
+
+describe_test "This should give an error because client refuses GSS downgrade"
+PGGSSENCMODE=require $PSQL --dbname handler --user handler -c "$TEST_QUERY"
+expect_failure "Expected SSL required failure"
+
 describe_test "Connecting to database with access explicitly forbidden"
 $PSQL --dbname pony --user pony -c "$TEST_QUERY"
 expect_failure "Expected failure with error message saying database explicitly disabled"

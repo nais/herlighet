@@ -99,7 +99,8 @@ func handleConnection(frontConn net.Conn) {
 		return
 	}
 	startupFields, _ := startupMessage.parse()
-        if startupFields["sslMode"] == "true" {
+        if startupFields["encryptionRequest"] == "true" {
+	    logger.Debug("Sending encryption downgrade request packet")
             frontConn.Write([]byte{0x4e})
             handleConnection(frontConn)
             return
@@ -161,10 +162,15 @@ func (startupMessage *pgStartupMessage) parse() (map[string]string, error) {
 	res["protoMajor"] = strconv.FormatUint(uint64(protoVer>>16), 10)
 	res["protoMinor"] = strconv.FormatUint(uint64(protoVer&0xFFFF), 10)
         if (res["protoMajor"] == "1234") && (res["protoMinor"] == "5679") {
-            res["sslMode"] = "true"
+	    logger.Debug("Startup message is SSLRequest")
+            res["encryptionRequest"] = "true"
+            return res, nil
+        } else if (res["protoMajor"] == "1234") && (res["protoMinor"] == "5680") {
+	    logger.Debug("Startup message is GSSEncRequest")
+            res["encryptionRequest"] = "true"
             return res, nil
         } else {
-            res["sslMode"] = "false"
+            res["encryptionRequest"] = "false"
         }
 
 	for {
