@@ -1,11 +1,8 @@
 # Herlighet
 
-Let There Be Glory!
-
-
 ## Deployment
 
-Deployment is managed using ansible.
+Deployment is managed using ansible. Although we have nowhere to run it from these days.
 
 ```
 ansible $ ansible-playbook -bKu RA_[RA user] -i [dev or prod] site.yml
@@ -17,7 +14,7 @@ Please note that the ansible playbook also invokes vault locally to obtain the p
 
 Therefore, vault and a valid access token (obtained with `vault login -method=oidc`) is required.
 
-## Herlighet ops/database maintenance
+## Herlighet maintenance
 
 VMs that the handlers run on today:
 
@@ -36,4 +33,15 @@ vault read postgresql/preprod-fss/static-creds/herlighet-static-admin
 prod:
 ```
 vault read postgresql/prod-fss/static-creds/herlighet-static-admin
+```
+
+These credentials can also be obtained from [vault GUI](https://vault.adeo.no). 
+
+Since there are no nodes with access to the nodes in question we are updating the database password via the VMWare console (accessible from operations image):
+
+* Log on with RA-account and change the password in the file /etc/herlighet.env.
+
+* Restart the service: 
+```
+systemctl restart herlighet
 ```
