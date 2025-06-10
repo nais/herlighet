@@ -56,7 +56,7 @@
 - name: Download and install herlighet binary
   when: download_url.changed
   get_url:
-    url: '{{ download_url.stdout }}'
+    url: "{{ download_url.stdout }}"
     dest: /opt/herlighet/sbin/herlighet
     validate_certs: no
     mode: 0755
