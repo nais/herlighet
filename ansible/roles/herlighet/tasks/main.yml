@@ -34,7 +34,7 @@
     dest: /etc/systemd/system/herlighet.service
     owner: root
     group: root
-    
+
 - name: Trigger service restart
   command: /bin/true
   notify: Enable and start herlighet service
@@ -47,16 +47,17 @@
     group: root
     mode: 0755
 
-- name: Get link for latest herlighet binary
-  shell: |
-    curl https://api.github.com/repos/nais/herlighet/releases/latest | grep browser_download_url | cut -f 4 -d \"
-  register: download_url
-  environment: "{{ proxy_env }}"
+# - name: Get link for latest herlighet binary
+#   shell: |
+#     curl https://api.github.com/repos/nais/herlighet/releases/latest | grep browser_download_url | cut -f 4 -d \"
+#   register: download_url
+#   environment: "{{ proxy_env }}"
 
 - name: Download and install herlighet binary
-  when: download_url.changed
+  # when: download_url.changed
   get_url:
-    url: "{{ download_url.stdout }}"
+    # url: "{{ download_url.stdout }}"
+    url: "https://github.com/nais/herlighet/releases/download/2023-03-31-b96dc3e/herlighet"
     dest: /opt/herlighet/sbin/herlighet
     validate_certs: no
     mode: 0755
