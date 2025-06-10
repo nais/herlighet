@@ -2,7 +2,7 @@
 - name: Get password from vault (if this fails, try doing "vault login -method=oidc")
   local_action: command vault read -field password postgresql/{{ vault_cluster_name }}/static-creds/herlighet-static-readonly
   register: vault_output
-  become: no
+  become: false
   any_errors_fatal: true
 
 - name: Ensure herlighet group exists
