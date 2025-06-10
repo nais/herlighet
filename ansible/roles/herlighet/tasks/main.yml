@@ -50,8 +50,6 @@
 - name: Get link for latest herlighet binary
   shell: |
     curl https://api.github.com/repos/nais/herlighet/releases/latest | grep browser_download_url | cut -f 4 -d \"
-  args:
-    warn: false
   register: download_url
   environment: "{{ proxy_env }}"
 
