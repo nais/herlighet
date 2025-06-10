@@ -4,7 +4,7 @@ gateways:
     prod-pg-backup.intern.nav.no:
   vars:
     vault_cluster_name: prod-fss
-    db_host: A01DBVL020.adeo.no
+    db_host: A01DBVL010.adeo.no
     db_user: herlighet-static-readonly
     db_port: 5432
     db_name: herlighet
