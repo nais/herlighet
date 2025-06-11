@@ -2,8 +2,9 @@ name: Build/push binary
 
 on: [push]
 permissions:
-  contents: read
   pull-requests: write
+  packages: write
+  contents: write
 
 jobs:
   build:
