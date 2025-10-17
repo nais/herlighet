@@ -57,7 +57,7 @@
   # when: download_url.changed
   get_url:
     # url: "{{ download_url.stdout }}"
-    url: "https://github.com/nais/herlighet/releases/download/2025-10-17-b225048/herlighet"
+    url: "https://github.com/nais/herlighet/releases/download/2023-03-31-b96dc3e/herlighet"
     dest: /opt/herlighet/sbin/herlighet
     validate_certs: no
     mode: 0755
