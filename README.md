@@ -10,7 +10,7 @@ ansible $ ansible-playbook -bKu RA_[RA user] -i [dev or prod] site.yml
 
 You will be prompted for your RA user's password, used to sudo on the target machines.
 
-Please note that the ansible playbook also invokes vault locally to obtain the passwords used to access the herlighet databases. 
+Please note that the ansible playbook also invokes vault locally to obtain the passwords used to access the herlighet databases.
 
 Therefore, vault and a valid access token (obtained with `vault login -method=oidc`) is required.
 
@@ -26,22 +26,43 @@ prod: a30apvl043.oera.no (main), a30apvl045.oera.no (backup)
 Getting credentials for the herlighet metadata/configuration database:
 
 dev:
+
 ```
 vault read postgresql/preprod-fss/static-creds/herlighet-static-admin
 ```
 
 prod:
+
 ```
 vault read postgresql/prod-fss/static-creds/herlighet-static-admin
 ```
 
-These credentials can also be obtained from [vault GUI](https://vault.adeo.no). 
+These credentials can also be obtained from [vault GUI](https://vault.adeo.no).
 
 Since there are no nodes with access to the nodes in question we are updating the database password via the VMWare console (accessible from operations image):
 
-* Log on with RA-account and change the password in the file /etc/herlighet.env.
+- Log on with RA-account and change the password in the file /etc/herlighet.env.
 
-* Restart the service: 
+- Restart the service:
+
 ```
 systemctl restart herlighet
+```
+
+SSH config to run ansible:
+
+```
+Host *-pg*.intern.nav.no 30apvl042.oera.no a30apvl043.oera.no a30apvl044.oera.no a30apvl045.oera.no
+	ProxyJump nais-admin
+	IdentityFile ~/.ssh/[your-key]
+	User RA_[RA user]
+
+Host dev-pg.intern.nav.no a30apvl042.oera.no
+  Hostname a30apvl042.oera.no
+Host dev-pg-backup.intern.nav.no a30apvl044.oera.no
+  Hostname a30apvl044.oera.no
+Host prod-pg.intern.nav.no a30apvl043.oera.no
+  Hostname a30apvl043.oera.no
+Host prod-pg-backup.intern.nav.no a30apvl045.oera.no
+  Hostname a30apvl045.oera.no
 ```
