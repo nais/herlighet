@@ -17,7 +17,7 @@ jobs:
       - name: set version
         if: github.ref == 'refs/heads/main'
         id: set-version
-        run: echo ::set-output name=version::$(date "+%Y-%m-%d")-$(git --no-pager log -1 --pretty=%h)
+        run: echo "version=$(date "+%Y-%m-%d")-$(git --no-pager log -1 --pretty=%h)" >> $GITHUB_OUTPUT
       - name: build binary
         run: |
           go mod download
