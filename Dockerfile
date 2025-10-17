@@ -1,10 +1,10 @@
-FROM golang:1.15-alpine as builder
+FROM golang:1.25-alpine AS builder
 
 COPY . /src
 WORKDIR /src
 RUN go get . && go build .
 
-FROM alpine:3.10
+FROM alpine:3.22
 RUN apk add --no-cache ca-certificates git curl
 
 WORKDIR /app
