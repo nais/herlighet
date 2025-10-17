@@ -20,21 +20,12 @@ jobs:
         run: echo ::set-output name=version::$(date "+%Y-%m-%d")-$(git --no-pager log -1 --pretty=%h)
       - name: build binary
         run: |
-          go get . && go build .
+          go mod download
+          go build .
       - name: create release
         if: github.ref == 'refs/heads/main'
-        id: create_release
-        uses: actions/create-release@v1.0.1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.set-version.outputs.version }}
-          release_name: Release ${{ steps.set-version.outputs.version }}
-          draft: false
-          prerelease: false
-      - name: upload herlighet binary
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-release-asset@v1.0.2
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./herlighet
-          asset_name: herlighet
-          asset_content_type: application/octet-stream
+          name: Release ${{ steps.set-version.outputs.version }}
+          files: herlighet
